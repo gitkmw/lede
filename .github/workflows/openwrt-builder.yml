@@ -45,9 +45,9 @@ jobs:
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
         
-        # 使用 /mnt 分区，这里空间更大
-        sudo mkdir -p /mnt/workdir
-        sudo chown $USER:$GROUPS /mnt/workdir
+        # 使用 /mnt 分区，创建所有需要的目录
+        sudo mkdir -p /mnt/workdir /mnt/tmp /mnt/ccache
+        sudo chown -R $USER:$GROUPS /mnt/workdir /mnt/tmp /mnt/ccache
         
         # 检查磁盘空间
         echo "=== 磁盘空间情况 ==="
@@ -98,14 +98,10 @@ jobs:
         cd /mnt/workdir/openwrt
         echo -e "$(nproc) thread compile"
         
-        # 设置临时目录也在 /mnt
+        # 设置临时目录和 ccache
         export TMPDIR=/mnt/tmp
-        mkdir -p $TMPDIR
-        
-        # 使用 ccache 减少编译文件
         export PATH="/usr/lib/ccache:$PATH"
         export CCACHE_DIR=/mnt/ccache
-        mkdir -p $CCACHE_DIR
         ccache -M 10G
         
         make -j$(nproc) || make -j1 || make -j1 V=s
